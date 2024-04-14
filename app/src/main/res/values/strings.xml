@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Getir Final Case</string>
+    <string name="binding_is_null">Binding is null</string>
 </resources>
