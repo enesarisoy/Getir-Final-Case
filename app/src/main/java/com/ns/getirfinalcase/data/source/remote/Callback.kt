@@ -6,7 +6,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class CallBack<T>(
+class Callback<T>(
     private val responseChannel: SendChannel<BaseResponse<T>>
 ) : Callback<T> {
 
