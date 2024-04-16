@@ -39,4 +39,8 @@ class LocalProductRepositoryImpl @Inject constructor(
     override suspend fun deleteAllItemsInCart() {
         return productsDao.deleteAllItemsInCart()
     }
+
+    override fun getTotalPriceInCart(): Flow<Double?> {
+        return productsDao.getTotalPriceInCart()
+    }
 }

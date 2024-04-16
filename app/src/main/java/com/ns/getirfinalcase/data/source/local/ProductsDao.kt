@@ -25,4 +25,7 @@ interface ProductsDao {
     @Query("DELETE FROM product")
     suspend fun deleteAllItemsInCart()
 
+    @Query("SELECT IFNULL(SUM(quantity * price), 0) FROM product")
+    fun getTotalPriceInCart(): Flow<Double?>
+
 }
