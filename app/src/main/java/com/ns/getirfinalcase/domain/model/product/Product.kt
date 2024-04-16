@@ -1,5 +1,9 @@
 package com.ns.getirfinalcase.domain.model.product
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "product")
 data class Product(
     val attribute: String? = null,
     val id: String,
@@ -10,4 +14,7 @@ data class Product(
     val shortDescription: String? = null,
     val thumbnailURL: String? = null,
     var quantity: Int = 1
-)
+){
+    @PrimaryKey(autoGenerate = true)
+    var dbId:Int = 0
+}
