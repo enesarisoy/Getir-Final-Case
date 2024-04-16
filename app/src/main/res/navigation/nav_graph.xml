@@ -28,6 +28,9 @@
         <action
             android:id="@+id/action_productDetailFragment_to_productListingFragment"
             app:destination="@id/productListingFragment" />
+        <argument
+            android:name="product"
+            app:argType="com.ns.getirfinalcase.domain.model.product.Product" />
     </fragment>
     <fragment
         android:id="@+id/shoppingCartFragment"

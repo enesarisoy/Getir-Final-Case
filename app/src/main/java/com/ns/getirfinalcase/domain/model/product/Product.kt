@@ -1,9 +1,12 @@
 package com.ns.getirfinalcase.domain.model.product
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kotlinx.parcelize.Parcelize
 
 @Entity(tableName = "product")
+@Parcelize
 data class Product(
     val attribute: String? = null,
     val id: String,
@@ -14,7 +17,7 @@ data class Product(
     val shortDescription: String? = null,
     val thumbnailURL: String? = null,
     var quantity: Int = 1
-){
+): Parcelable{
     @PrimaryKey(autoGenerate = true)
     var dbId:Int = 0
 }

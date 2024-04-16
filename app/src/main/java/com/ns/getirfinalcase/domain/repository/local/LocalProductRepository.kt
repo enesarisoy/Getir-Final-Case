@@ -12,4 +12,6 @@ interface LocalProductRepository {
     suspend fun deleteFromCart(id: String)
     suspend fun deleteAllItemsInCart()
 
+    fun getTotalPriceInCart(): Flow<Double?>
+
 }
