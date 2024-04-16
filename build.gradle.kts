@@ -5,13 +5,5 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.kapt) apply false
     alias(libs.plugins.safeArgs) apply false
+    alias(libs.plugins.parcelize) apply false
 }
-
-//buildscript {
-//    repositories {
-//        google()
-//    }
-//    dependencies {
-//        classpath(libs.androidx.navigation.safe.args.gradle.plugin)
-//    }
-//}
