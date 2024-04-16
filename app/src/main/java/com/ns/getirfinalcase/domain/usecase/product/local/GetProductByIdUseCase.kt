@@ -7,6 +7,6 @@ class GetProductByIdUseCase @Inject constructor(
     private val localProductRepository: LocalProductRepository
 ) {
 
-    suspend operator fun invoke(productId: String) =
+    operator fun invoke(productId: String) =
         localProductRepository.getProductById(productId)
 }

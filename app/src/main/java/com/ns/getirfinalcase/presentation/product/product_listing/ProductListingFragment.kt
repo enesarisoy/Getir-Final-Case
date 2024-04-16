@@ -24,7 +24,6 @@ import com.ns.getirfinalcase.databinding.ItemProductListingViewBinding
 import com.ns.getirfinalcase.databinding.ItemToolbarProductsBinding
 import com.ns.getirfinalcase.domain.model.product.Product
 import com.ns.getirfinalcase.presentation.adapter.SingleRecyclerAdapter
-import com.ns.getirfinalcase.presentation.product.ProductViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
