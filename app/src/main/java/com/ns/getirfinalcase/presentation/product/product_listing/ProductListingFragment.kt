@@ -158,8 +158,16 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
                     }
 
+                    root.setOnClickListener {
+                        findNavController().navigate(
+                            ProductListingFragmentDirections.actionProductListingFragmentToProductDetailFragment(
+                                product
+                            )
+                        )
 
+                    }
                 }
+
             }
         )
 
