@@ -43,62 +43,56 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
         getProducts()
         getProductsFromCart()
+
+        checkCart()
+
     }
 
+    private fun checkCart() {
+        binding.toolbarProductListing.apply {
+            ivCart.setOnClickListener {
+                findNavController().navigate(R.id.action_productListingFragment_to_shoppingCartFragment)
+            }
+            viewModel.getProductsFromCart()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getProductsFromCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { viewState ->
+                        when (viewState) {
+                            is ViewState.Success -> {
+                                linearCart.visible()
+                                //TODO (Animate Cart)
+                                totalPrice = 0.0
+                                productsFromBasket.forEach {
+                                    totalPrice += it.price * it.quantity
 
-    private val toolbarAdapter = SingleRecyclerAdapter<ItemToolbarProductsBinding, String>(
-        { inflater, _, _ ->
-            ItemToolbarProductsBinding.inflate(
-                inflater,
-                binding.rvProductListingScreen,
-                false
-            )
-        },
-        { binding, item ->
-            binding.apply {
-                ivCart.setOnClickListener {
-                    findNavController().navigate(R.id.action_productListingFragment_to_shoppingCartFragment)
-                }
-                viewModel.getProductsFromCart()
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.getProductsFromCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                        .collect { viewState ->
-                            when (viewState) {
-                                is ViewState.Success -> {
-                                    linearCart.visible()
+                                }
+                                tvPrice.text =
+                                    "₺${String.format("%.2f", totalPrice)}"
+
+                                if (totalPrice == 0.0) {
                                     //TODO (Animate Cart)
-                                    totalPrice = 0.0
-                                    productsFromBasket.forEach {
-                                        totalPrice += it.price * it.quantity
 
-                                    }
-                                    tvPrice.text =
-                                        "₺${String.format("%.2f", totalPrice)}"
-
-                                    if (totalPrice == 0.0) {
-                                        //TODO (Animate Cart)
-
-                                        linearCart.gone()
-                                    }
-                                }
-
-                                is ViewState.Error -> {
-                                    Log.d("Database", viewState.error)
-
-                                }
-
-                                is ViewState.Loading -> {
-                                    Log.d("Database", "Loading")
-
+                                    linearCart.gone()
                                 }
                             }
+
+                            is ViewState.Error -> {
+                                Log.d("Database", viewState.error)
+
+                            }
+
+                            is ViewState.Loading -> {
+                                Log.d("Database", "Loading")
+
+                            }
                         }
-                }
-
-
+                    }
             }
+
+
         }
-    )
+    }
+
 
     private val productListingAdapter = SingleRecyclerAdapter<ItemProductListingBinding, String>(
         { inflater, _, _ ->
@@ -294,13 +288,11 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
     }
 
     private val concatAdapter = ConcatAdapter(
-        toolbarAdapter,
         productListingAdapter
     )
 
     private fun initAdapters() {
         binding.apply {
-            toolbarAdapter.data = listOf("toolbarAdapter")
             productListingAdapter.data = listOf("productListingAdapter")
         }
     }
