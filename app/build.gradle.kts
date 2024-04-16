@@ -75,4 +75,9 @@ dependencies {
     // Recyclerview
     implementation(libs.recyclerview)
 
+    // Room
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    kapt(libs.room.compiler)
+
 }
