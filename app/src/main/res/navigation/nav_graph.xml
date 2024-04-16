@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/productListingFragment">
+
+    <fragment
+        android:id="@+id/productListingFragment"
+        android:name="com.ns.getirfinalcase.presentation.product.product_listing.ProductListingFragment"
+        android:label="fragment_product_listing"
+        tools:layout="@layout/fragment_product_listing" >
+        <action
+            android:id="@+id/action_productListingFragment_to_shoppingCartFragment"
+            app:destination="@id/shoppingCartFragment" />
+        <action
+            android:id="@+id/action_productListingFragment_to_productDetailFragment"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/productDetailFragment"
+        android:name="com.ns.getirfinalcase.presentation.product.product_detail.ProductDetailFragment"
+        android:label="fragment_product_detail"
+        tools:layout="@layout/fragment_product_detail" >
+        <action
+            android:id="@+id/action_productDetailFragment_to_shoppingCartFragment"
+            app:destination="@id/shoppingCartFragment" />
+        <action
+            android:id="@+id/action_productDetailFragment_to_productListingFragment"
+            app:destination="@id/productListingFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/shoppingCartFragment"
+        android:name="com.ns.getirfinalcase.presentation.shopping_cart.ShoppingCartFragment"
+        android:label="fragment_shopping_cart"
+        tools:layout="@layout/fragment_shopping_cart" >
+        <action
+            android:id="@+id/action_shoppingCartFragment_to_productListingFragment"
+            app:destination="@id/productListingFragment" />
+        <action
+            android:id="@+id/action_shoppingCartFragment_to_productDetailFragment"
+            app:destination="@id/productDetailFragment" />
+    </fragment>
+</navigation>
