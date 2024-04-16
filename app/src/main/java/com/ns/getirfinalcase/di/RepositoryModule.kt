@@ -1,7 +1,10 @@
 package com.ns.getirfinalcase.di
 
+import com.ns.getirfinalcase.data.repository.local.LocalProductRepositoryImpl
 import com.ns.getirfinalcase.data.repository.remote.ProductRepositoryImpl
+import com.ns.getirfinalcase.data.source.local.ProductsDao
 import com.ns.getirfinalcase.data.source.remote.service.ProductService
+import com.ns.getirfinalcase.domain.repository.local.LocalProductRepository
 import com.ns.getirfinalcase.domain.repository.remote.ProductRepository
 import dagger.Module
 import dagger.Provides
@@ -21,4 +24,12 @@ object RepositoryModule {
         @IoDispatcher dispatcher: CoroutineDispatcher
     ): ProductRepository =
         ProductRepositoryImpl(productService, dispatcher)
+
+    @Provides
+    @Singleton
+    fun provideLocalProductRepository(
+        productsDao: ProductsDao,
+        @IoDispatcher dispatcher: CoroutineDispatcher
+    ): LocalProductRepository =
+        LocalProductRepositoryImpl(productsDao, dispatcher)
 }
