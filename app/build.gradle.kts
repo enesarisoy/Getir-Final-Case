@@ -72,4 +72,7 @@ dependencies {
     // Glide
     implementation(libs.glide)
 
+    // Recyclerview
+    implementation(libs.recyclerview)
+
 }
