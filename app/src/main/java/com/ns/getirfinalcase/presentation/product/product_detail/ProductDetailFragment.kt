@@ -37,7 +37,7 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
         checkItemInCart()
         addItemToCart()
     }
-    // TODO ADD AND DELETE
+    // TODO ANIMATION
 
     private fun addItemToCart() {
         with(binding) {
