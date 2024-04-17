@@ -105,6 +105,7 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
 
     private fun checkCartPrice() {
         with(binding) {
+            viewModel.getTotalPrice()
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.getTotalPrice.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                     .collect { totalPrice ->
@@ -122,7 +123,7 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
     private fun initClick() {
         with(binding) {
             toolbarProductDetail.ivClose.setOnClickListener {
-                findNavController().navigateUp()
+//                findNavController().navigateUp()TODO
             }
             toolbarProductDetail.linearCart.setOnClickListener {
                 findNavController().navigate(R.id.action_productDetailFragment_to_shoppingCartFragment)

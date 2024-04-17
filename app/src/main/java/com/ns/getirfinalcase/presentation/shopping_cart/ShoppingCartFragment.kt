@@ -15,6 +15,10 @@ import com.ns.getirfinalcase.R
 import com.ns.getirfinalcase.core.base.BaseFragment
 import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
+import com.ns.getirfinalcase.core.util.gone
+import com.ns.getirfinalcase.core.util.visible
+import com.ns.getirfinalcase.data.mapper.toProduct
+import com.ns.getirfinalcase.data.mapper.toSuggestedProduct
 import com.ns.getirfinalcase.databinding.FragmentShoppingCartBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsViewBinding
@@ -46,9 +50,12 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
         checkCartPrice()
 
         deleteAllItems()
+
+
     }
 
     private fun deleteAllItems() {
+        // TODO(anim)
         with(binding) {
             toolbarShoppingCart.ivDelete.setOnClickListener {
                 val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
@@ -63,7 +70,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 btnPositive.setOnClickListener {
                     viewModel.deleteAllItems()
                     builder.dismiss()
-                    findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
                 }
                 builder.setCanceledOnTouchOutside(false)
                 builder.show()
@@ -93,6 +99,10 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                             is ViewState.Success -> {
                                 val response = viewState.result as BaseResponse.Success
                                 itemProductsInCartAdapter.data = response.data
+                                productsFromBasket.addAll(response.data)
+                                if (response.data.isEmpty()) {
+                                    findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
+                                }
 
                             }
 
@@ -111,6 +121,12 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
         }
     }
 
+    private fun checkAndRemoveProductFromSuggestedList(product: Product) {
+        if (productsFromBasket.any { it.id == product.id }) {
+            removeProductFromSuggestedList(product)
+        }
+    }
+
     private fun getSuggestedProductsFromApi() {
         binding.apply {
             viewModel.getSuggestedProductsFromApi()
@@ -121,6 +137,10 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                             is ViewState.Success -> {
                                 val response = viewState.result as BaseResponse.Success
                                 itemSuggestedProductsAdapter.data = response.data[0].products
+
+                                itemSuggestedProductsAdapter.data.forEach { suggestedProduct ->
+                                    checkAndRemoveProductFromSuggestedList(suggestedProduct.toProduct())
+                                }
                             }
 
                             is ViewState.Error -> {
@@ -135,6 +155,12 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
             }
         }
     }
+
+    private fun removeProductFromSuggestedList(product: Product) {
+        val suggestedProducts = itemSuggestedProductsAdapter.data.filterNot { it.id == product.id }
+        itemSuggestedProductsAdapter.data = suggestedProducts
+    }
+
 
     private val productsInCartAdapter =
         SingleRecyclerAdapter<ItemShoppingCartProductsBinding, String>(
@@ -169,6 +195,37 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     tvPrice.text = product.priceText
                     tvProductQuantity.text = product.quantity.toString()
                     Glide.with(binding.root.context).load(product.imageURL).into(ivFood)
+
+                    ivAdd.setOnClickListener {
+                        product.quantity++
+                        viewModel.addToCart(product)
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                                .collect { productResponse ->
+                                    productResponse?.let {
+                                        tvProductQuantity.text = productResponse.quantity.toString()
+                                    }
+                                }
+                        }
+                    }
+
+                    ivDelete.setOnClickListener {
+                        product.quantity--
+
+                        viewModel.deleteFromCart(product)
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                                .collect { productResponse ->
+                                    productResponse?.let {
+                                        tvProductQuantity.text = productResponse.quantity.toString()
+                                    } ?: run {
+                                        productsFromBasket.remove(product)
+                                        getSuggestedProductsFromApi()
+
+                                    }
+                                }
+                        }
+                    }
                 }
 
             }
@@ -223,11 +280,34 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     Glide.with(binding.root.context)
                         .load(suggestedProduct.imageURL ?: suggestedProduct.squareThumbnailURL)
                         .into(ivFood)
+
+                    ivAdd.setOnClickListener {
+                        val product = Product(
+                            id = suggestedProduct.id,
+                            name = suggestedProduct.name,
+                            imageURL = suggestedProduct.imageURL
+                                ?: suggestedProduct.squareThumbnailURL,
+                            price = suggestedProduct.price ?: 0.0,
+                            priceText = suggestedProduct.priceText,
+                            shortDescription = suggestedProduct.shortDescription,
+                            thumbnailURL = suggestedProduct.squareThumbnailURL,
+                            quantity = suggestedProduct.quantity ?: 1
+                        )
+                        viewModel.addToCart(product)
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                                .collect { productResponse ->
+                                    productResponse?.let {
+                                        removeProductFromSuggestedList(it)
+
+                                    }
+                                }
+                        }
+                    }
                 }
 
             }
         )
-
 
     private fun initListener() {
         binding.rvShoppingCartScreen.adapter = concatAdapter

@@ -7,7 +7,10 @@ import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.domain.model.product.Product
 import com.ns.getirfinalcase.domain.model.product.ProductResponse
 import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProductResponse
+import com.ns.getirfinalcase.domain.usecase.product.local.AddToCartProductUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.DeleteAllItemsInCartUseCase
+import com.ns.getirfinalcase.domain.usecase.product.local.DeleteFromCartUseCase
+import com.ns.getirfinalcase.domain.usecase.product.local.GetProductByIdUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetProductsFromCartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetTotalPriceInChartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.remote.GetSuggestedProductsUseCase
@@ -27,7 +30,10 @@ class ShoppingCartViewModel @Inject constructor(
     private val getProductsFromCartUseCase: GetProductsFromCartUseCase,
     private val getSuggestedProductsUseCase: GetSuggestedProductsUseCase,
     private val getTotalPriceInChartUseCase: GetTotalPriceInChartUseCase,
-    private val deleteAllItemsInCartUseCase: DeleteAllItemsInCartUseCase
+    private val deleteAllItemsInCartUseCase: DeleteAllItemsInCartUseCase,
+    private val addToCartProductUseCase: AddToCartProductUseCase,
+    private val deleteFromCartUseCase: DeleteFromCartUseCase,
+    private val getProductByIdUseCase: GetProductByIdUseCase
 ) : ViewModel() {
 
     private var _getProductsFromCart: MutableStateFlow<ViewState<BaseResponse<List<Product>>>> =
@@ -40,6 +46,46 @@ class ShoppingCartViewModel @Inject constructor(
 
     private var _getTotalPrice: MutableStateFlow<Double> = MutableStateFlow(0.0)
     val getTotalPrice = _getTotalPrice.asStateFlow()
+
+    private var _addToCart: MutableStateFlow<Product?> = MutableStateFlow(null)
+    val addToCart = _addToCart.asStateFlow()
+
+    fun addToCart(product: Product) {
+        viewModelScope.launch {
+            val checkProductAlreadyInDatabase = getProductByIdUseCase(product.id).firstOrNull()
+
+            checkProductAlreadyInDatabase?.let {
+                it.quantity++
+                addToCartProductUseCase(it)
+                _addToCart.value = it
+            } ?: run {
+                addToCartProductUseCase(product)
+                _addToCart.value = product
+            }
+            getTotalPrice()
+
+        }
+    }
+
+    fun deleteFromCart(product: Product) {
+        viewModelScope.launch {
+            val checkProductAlreadyInDatabase = getProductByIdUseCase(product.id).firstOrNull()
+
+            checkProductAlreadyInDatabase?.let {
+                if (it.quantity > 1) {
+                    it.quantity--
+                    // Updates the current product quantity with minus 1.
+                    // Used this because room's @Update not working correctly. (Or I couldn't manage it.)
+                    addToCartProductUseCase(it)
+                    _addToCart.value = it
+                } else {
+                    deleteFromCartUseCase(product.id)
+                    _addToCart.value = null
+                }
+            }
+            getTotalPrice()
+        }
+    }
 
     fun getSuggestedProductsFromApi() {
         getSuggestedProductsUseCase().map { response ->

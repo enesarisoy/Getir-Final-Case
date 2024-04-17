@@ -34,10 +34,6 @@ class ProductDetailViewModel @Inject constructor(
     private var _addToCart: MutableStateFlow<Product?> = MutableStateFlow(null)
     val addToCart = _addToCart.asStateFlow()
 
-    init {
-        getTotalPrice()
-    }
-
     fun addToCart(product: Product) {
         viewModelScope.launch {
             val checkProductAlreadyInDatabase = getProductByIdUseCase(product.id).firstOrNull()
