@@ -7,6 +7,7 @@ import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.domain.model.product.Product
 import com.ns.getirfinalcase.domain.model.product.ProductResponse
 import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProductResponse
+import com.ns.getirfinalcase.domain.usecase.product.local.DeleteAllItemsInCartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetProductsFromCartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetTotalPriceInChartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.remote.GetSuggestedProductsUseCase
@@ -25,7 +26,8 @@ import javax.inject.Inject
 class ShoppingCartViewModel @Inject constructor(
     private val getProductsFromCartUseCase: GetProductsFromCartUseCase,
     private val getSuggestedProductsUseCase: GetSuggestedProductsUseCase,
-    private val getTotalPriceInChartUseCase: GetTotalPriceInChartUseCase
+    private val getTotalPriceInChartUseCase: GetTotalPriceInChartUseCase,
+    private val deleteAllItemsInCartUseCase: DeleteAllItemsInCartUseCase
 ) : ViewModel() {
 
     private var _getProductsFromCart: MutableStateFlow<ViewState<BaseResponse<List<Product>>>> =
@@ -73,6 +75,12 @@ class ShoppingCartViewModel @Inject constructor(
         }?.catch {
             _getProductsFromCart.emit(ViewState.Error(it.message.toString()))
         }?.launchIn(viewModelScope)
+    }
+
+    fun deleteAllItems() {
+        viewModelScope.launch {
+            deleteAllItemsInCartUseCase()
+        }
     }
 
     fun getTotalPrice() {

@@ -1,11 +1,14 @@
 package com.ns.getirfinalcase.presentation.shopping_cart
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import com.bumptech.glide.Glide
 import com.ns.getirfinalcase.R
@@ -41,6 +44,31 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
         getProductsInCart()
         getSuggestedProductsFromApi()
         checkCartPrice()
+
+        deleteAllItems()
+    }
+
+    private fun deleteAllItems() {
+        with(binding) {
+            toolbarShoppingCart.ivDelete.setOnClickListener {
+                val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+                    .create()
+                val view = layoutInflater.inflate(R.layout.custom_alert_dialog, null)
+                val btnPositive = view.findViewById<Button>(R.id.btnPositive)
+                val btnNegative = view.findViewById<Button>(R.id.btnNegative)
+                builder.setView(view)
+                btnNegative.setOnClickListener {
+                    builder.dismiss()
+                }
+                btnPositive.setOnClickListener {
+                    viewModel.deleteAllItems()
+                    builder.dismiss()
+                    findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
+                }
+                builder.setCanceledOnTouchOutside(false)
+                builder.show()
+            }
+        }
     }
 
     private fun checkCartPrice() {

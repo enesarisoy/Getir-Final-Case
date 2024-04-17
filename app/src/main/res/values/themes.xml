@@ -6,4 +6,8 @@
     </style>
 
     <style name="Theme.GetirFinalCase" parent="Base.Theme.GetirFinalCase" />
+
+    <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/alert_dialog_rounded_corner</item>
+    </style>
 </resources>
