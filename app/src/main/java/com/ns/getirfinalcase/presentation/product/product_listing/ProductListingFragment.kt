@@ -18,12 +18,17 @@ import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.core.util.gone
 import com.ns.getirfinalcase.core.util.visible
+import com.ns.getirfinalcase.data.mapper.toProduct
 import com.ns.getirfinalcase.databinding.FragmentProductListingBinding
 import com.ns.getirfinalcase.databinding.ItemProductListingBinding
 import com.ns.getirfinalcase.databinding.ItemProductListingViewBinding
+import com.ns.getirfinalcase.databinding.ItemShoppingCartSuggestedProductsBinding
+import com.ns.getirfinalcase.databinding.ItemShoppingCartSuggestedProductsViewBinding
 import com.ns.getirfinalcase.databinding.ItemToolbarProductsBinding
 import com.ns.getirfinalcase.domain.model.product.Product
+import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProduct
 import com.ns.getirfinalcase.presentation.adapter.SingleRecyclerAdapter
+import com.ns.getirfinalcase.presentation.shopping_cart.ShoppingCartFragmentDirections
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -45,7 +50,34 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
         getProductsFromCart()
 
         checkCart()
+        getSuggestedProducts()
 
+    }
+
+    private fun getSuggestedProducts() {
+        binding.apply {
+            viewModel.getSuggestedProductsFromApi()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getSuggestedProducts.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { viewState ->
+                        when (viewState) {
+                            is ViewState.Success -> {
+                                val response = viewState.result as BaseResponse.Success
+                                itemSuggestedProductsAdapter.data = response.data[0].products
+
+                            }
+
+                            is ViewState.Error -> {
+                                Log.d("SuggestedProducts", viewState.error)
+                            }
+
+                            is ViewState.Loading -> {
+                                Log.d("SuggestedProducts", "Loading")
+                            }
+                        }
+                    }
+            }
+        }
     }
 
     private fun checkCart() {
@@ -165,6 +197,88 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                             )
                         )
 
+                    }
+                }
+
+            }
+        )
+
+    private val suggestedProductsAdapter =
+        SingleRecyclerAdapter<ItemShoppingCartSuggestedProductsBinding, String>(
+            { inflater, _, _ ->
+                ItemShoppingCartSuggestedProductsBinding.inflate(
+                    inflater,
+                    binding.rvProductListingScreen,
+                    false
+                )
+            },
+            { binding, item ->
+                binding.apply {
+                    rvItemShoppingCartSuggestedProducts.adapter = itemSuggestedProductsAdapter
+                }
+            }
+        )
+
+    private val itemSuggestedProductsAdapter =
+        SingleRecyclerAdapter<ItemProductListingViewBinding, SuggestedProduct>(
+            { inflater, _, _ ->
+                ItemProductListingViewBinding.inflate(
+                    inflater,
+                    binding.rvProductListingScreen,
+                    false
+                )
+            },
+            { binding, suggestedProduct ->
+
+                val product = suggestedProduct.toProduct()
+                binding.apply {
+
+                    tvProductName.text = suggestedProduct.name
+                    tvPrice.text = suggestedProduct.priceText
+                    Glide.with(binding.root.context)
+                        .load(suggestedProduct.imageURL ?: suggestedProduct.squareThumbnailURL)
+                        .into(ivFood)
+
+                    productsFromBasket.firstOrNull { it.id == suggestedProduct.id }?.let {
+                        product.quantity = it.quantity
+                    }
+                    if (product.quantity > 0) {
+                        tvProductQuantity.text = product.quantity.toString()
+                        displayComponents(binding)
+                    } else {
+                        clearComponents(binding)
+                    }
+
+                    ivAdd.setOnClickListener {
+
+                        product.quantity++
+                        viewModel.addToCart(product)
+                        displayComponents(binding)
+                        ivDelete.isClickable = true
+
+                        tvProductQuantity.text = product.quantity.toString()
+                    }
+
+                    ivDelete.setOnClickListener {
+                        product.quantity--
+
+                        viewModel.deleteFromCart(product)
+                        tvProductQuantity.text = product.quantity.toString()
+
+                        if (product.quantity == 0) {
+                            ivDelete.isClickable = false
+                            clearComponents(binding)
+
+                        }
+
+                    }
+
+                    root.setOnClickListener {
+                        findNavController().navigate(
+                            ProductListingFragmentDirections.actionProductListingFragmentToProductDetailFragment(
+                                product
+                            )
+                        )
                     }
                 }
 
@@ -296,12 +410,14 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
     }
 
     private val concatAdapter = ConcatAdapter(
+        suggestedProductsAdapter,
         productListingAdapter
     )
 
     private fun initAdapters() {
         binding.apply {
             productListingAdapter.data = listOf("productListingAdapter")
+            suggestedProductsAdapter.data = listOf("suggestedProductsAdapter")
         }
     }
 }

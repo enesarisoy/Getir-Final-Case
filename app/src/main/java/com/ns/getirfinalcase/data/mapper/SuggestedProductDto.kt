@@ -7,11 +7,11 @@ fun SuggestedProduct.toProduct(): Product {
     return Product(
         id = id,
         name = name ?: "",
-        imageURL = imageURL ?: "",
+        imageURL = imageURL ?: squareThumbnailURL,
         price = price ?: 0.0,
         priceText = priceText ?: "",
         shortDescription = shortDescription ?: "",
-        thumbnailURL = squareThumbnailURL ?: "",
-        quantity = quantity ?: 1
+        thumbnailURL = squareThumbnailURL ?: imageURL,
+        quantity = quantity ?: 0
     )
 }
