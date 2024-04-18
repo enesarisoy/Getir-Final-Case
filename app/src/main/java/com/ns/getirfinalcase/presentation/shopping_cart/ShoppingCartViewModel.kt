@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.domain.model.product.Product
-import com.ns.getirfinalcase.domain.model.product.ProductResponse
+import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProduct
 import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProductResponse
 import com.ns.getirfinalcase.domain.usecase.product.local.AddToCartProductUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.DeleteAllItemsInCartUseCase
@@ -48,7 +48,7 @@ class ShoppingCartViewModel @Inject constructor(
     val getTotalPrice = _getTotalPrice.asStateFlow()
 
     private var _addToCart: MutableStateFlow<Product?> = MutableStateFlow(null)
-    val addToCart = _addToCart.asStateFlow()
+    val addToCart: MutableStateFlow<Product?> = _addToCart
 
     fun addToCart(product: Product) {
         viewModelScope.launch {

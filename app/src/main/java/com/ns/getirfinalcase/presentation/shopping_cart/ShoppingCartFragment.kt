@@ -196,6 +196,8 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     tvProductQuantity.text = product.quantity.toString()
                     Glide.with(binding.root.context).load(product.imageURL).into(ivFood)
 
+
+
                     ivAdd.setOnClickListener {
                         product.quantity++
                         viewModel.addToCart(product)
@@ -218,13 +220,18 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                                 .collect { productResponse ->
                                     productResponse?.let {
                                         tvProductQuantity.text = productResponse.quantity.toString()
-                                    } ?: run {
-                                        productsFromBasket.remove(product)
-                                        getSuggestedProductsFromApi()
-
                                     }
                                 }
                         }
+
+                    }
+
+                    root.setOnClickListener {
+                        findNavController().navigate(
+                            ShoppingCartFragmentDirections.actionShoppingCartFragmentToProductDetailFragment(
+                                product
+                            )
+                        )
                     }
                 }
 
@@ -262,6 +269,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 }
             }
         )
+    // TODO DELETE PROBLEM
 
     private val itemSuggestedProductsAdapter =
         SingleRecyclerAdapter<ItemShoppingCartSuggestedProductsViewBinding, SuggestedProduct>(
@@ -303,6 +311,14 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                                     }
                                 }
                         }
+                    }
+
+                    root.setOnClickListener {
+                        findNavController().navigate(
+                            ShoppingCartFragmentDirections.actionShoppingCartFragmentToProductDetailFragment(
+                                suggestedProduct.toProduct().copy(quantity = 0)
+                            )
+                        )
                     }
                 }
 

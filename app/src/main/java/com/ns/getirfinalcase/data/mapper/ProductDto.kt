@@ -8,11 +8,11 @@ fun Product.toSuggestedProduct(): SuggestedProduct {
         id = id,
         name = name ?: "",
         imageURL = imageURL ?: "",
-        price = price ?: 0.0,
+        price = price,
         priceText = priceText ?: "",
         shortDescription = shortDescription ?: "",
         squareThumbnailURL = thumbnailURL ?: "",
-        quantity = quantity ?: 1,
+        quantity = quantity ?: 0,
         category = null,
         status = null,
         unitPrice = price
