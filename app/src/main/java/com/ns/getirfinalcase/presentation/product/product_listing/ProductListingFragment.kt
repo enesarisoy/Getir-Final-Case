@@ -1,8 +1,16 @@
 package com.ns.getirfinalcase.presentation.product.product_listing
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.Animation
+import android.view.animation.OvershootInterpolator
+import android.view.animation.ScaleAnimation
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.viewModels
@@ -79,6 +87,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
             }
         }
     }
+
     private fun getProducts() {
         binding.apply {
             viewModel.getAllProductsFromApi()
@@ -117,7 +126,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
     private fun checkCart() {
         binding.toolbarProductListing.apply {
-            ivCart.setOnClickListener {
+            linearCart.setOnClickListener {
                 findNavController().navigate(R.id.action_productListingFragment_to_shoppingCartFragment)
             }
             viewModel.getProductsFromCart()
@@ -127,7 +136,8 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         when (viewState) {
                             is ViewState.Success -> {
                                 linearCart.visible()
-                                //TODO (Animate Cart)
+                                animateCart(150f, 0f)
+
                                 totalPrice = 0.0
                                 productsFromBasket.forEach {
                                     totalPrice += it.price * it.quantity
@@ -137,7 +147,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                                     "₺${String.format("%.2f", totalPrice)}"
 
                                 if (totalPrice == 0.0) {
-                                    //TODO (Animate Cart)
+                                    animateCart(0f, 280f)
 
                                     linearCart.gone()
                                 }
@@ -188,6 +198,8 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
             },
             { binding, product ->
                 binding.apply {
+                    var isFirstTime: Boolean = true
+
                     tvProductName.text = product.name
                     tvAttribute.text = product.attribute
                     tvPrice.text = product.priceText
@@ -202,13 +214,17 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
 
                     ivAdd.setOnClickListener {
+
                         displayComponents(binding)
                         product.quantity++
                         viewModel.addToCart(product)
                         ivDelete.isClickable = true
 
                         tvProductQuantity.text = product.quantity.toString()
-
+                        if (isFirstTime) {
+                            downToAnimation(binding)
+                            isFirstTime = false
+                        }
                     }
 
                     ivDelete.setOnClickListener {
@@ -218,8 +234,10 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         tvProductQuantity.text = product.quantity.toString()
 
                         if (product.quantity == 0) {
+                            isFirstTime = true
                             ivDelete.isClickable = false
                             clearComponents(binding)
+                            upToAnimation(binding)
 
                         }
 
@@ -267,6 +285,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
                 val product = suggestedProduct.toProduct()
                 binding.apply {
+                    var isFirstTime: Boolean = true
 
                     tvProductName.text = suggestedProduct.name
                     tvPrice.text = suggestedProduct.priceText
@@ -277,6 +296,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                     productsFromBasket.firstOrNull { it.id == suggestedProduct.id }?.let {
                         product.quantity = it.quantity
                     }
+
                     if (product.quantity > 0) {
                         tvProductQuantity.text = product.quantity.toString()
                         displayComponents(binding)
@@ -292,6 +312,10 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         ivDelete.isClickable = true
 
                         tvProductQuantity.text = product.quantity.toString()
+                        if (isFirstTime) {
+                            downToAnimation(binding)
+                            isFirstTime = false
+                        }
                     }
 
                     ivDelete.setOnClickListener {
@@ -301,8 +325,10 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         tvProductQuantity.text = product.quantity.toString()
 
                         if (product.quantity == 0) {
+                            isFirstTime = true
                             ivDelete.isClickable = false
                             clearComponents(binding)
+                            upToAnimation(binding)
 
                         }
 
@@ -398,7 +424,6 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
     }
 
 
-
     private fun initListener() {
         binding.rvProductListingScreen.adapter = concatAdapter
     }
@@ -412,6 +437,91 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
         binding.apply {
             productListingAdapter.data = listOf("productListingAdapter")
             suggestedProductsAdapter.data = listOf("suggestedProductsAdapter")
+        }
+    }
+
+    private fun animateCart(from: Float, to: Float) {
+        ObjectAnimator.ofFloat(binding.toolbarProductListing.linearCart, "translationX", from, to).apply {
+            duration = 1000
+            interpolator = OvershootInterpolator()
+            start()
+        }
+    }
+
+    private fun downToAnimation(binding: ItemProductListingViewBinding) {
+        binding.apply {
+            val scaleAnimation = ScaleAnimation(
+                1f,
+                1f,
+                0f,
+                1f,
+                Animation.RELATIVE_TO_SELF,
+                0.5f,
+                Animation.RELATIVE_TO_SELF,
+                0f
+            )
+            scaleAnimation.duration = 300
+            scaleAnimation.interpolator =
+                AccelerateInterpolator()
+
+            scaleAnimation.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {
+                    ivAdd.background =
+                        ResourcesCompat.getDrawable(
+                            binding.root.resources,
+                            R.drawable.cart_add_icon_bg_when_clicked,
+                            null
+                        )
+
+                }
+
+                override fun onAnimationRepeat(animation: Animation?) {}
+                override fun onAnimationEnd(animation: Animation?) {
+                    tvProductQuantity.text = 1.toString()
+                }
+            })
+
+            linearLayout.startAnimation(scaleAnimation)
+
+        }
+    }
+
+    private fun upToAnimation(binding: ItemProductListingViewBinding) {
+        binding.apply {
+            val scaleAnimation = ScaleAnimation(
+                1f,
+                1f,
+                1f,
+                0f,
+                Animation.RELATIVE_TO_SELF,
+                0.5f,
+                Animation.RELATIVE_TO_SELF,
+                0f
+            )
+            scaleAnimation.duration = 300
+            scaleAnimation.interpolator = AccelerateInterpolator()
+            scaleAnimation.setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(animation: Animation?) {
+                    ivAdd.background =
+                        ResourcesCompat.getDrawable(
+                            binding.root.resources,
+                            R.drawable.cart_add_icon_bg_when_clicked,
+                            null
+                        )
+                }
+                override fun onAnimationRepeat(animation: Animation?) {}
+                override fun onAnimationEnd(animation: Animation?) {
+                    ivAdd.background =
+                        ResourcesCompat.getDrawable(
+                            binding.root.resources,
+                            R.drawable.cart_add_icon_background,
+                            null
+                        )
+
+                }
+            })
+
+            linearLayout.startAnimation(scaleAnimation)
         }
     }
 }
