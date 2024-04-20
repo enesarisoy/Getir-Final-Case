@@ -1,7 +1,9 @@
 package com.ns.getirfinalcase.presentation.product.product_detail
 
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -117,10 +119,12 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
                 viewModel.getTotalPrice.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                     .collect { totalPrice ->
                         toolbarProductDetail.linearCart.visible()
+                        animateCart(150f, 0f)
                         toolbarProductDetail.tvCartPrice.text =
                             "₺${String.format("%.2f", totalPrice)}"
                         if (totalPrice == 0.0) {
                             toolbarProductDetail.linearCart.gone()
+                            animateCart(0f, 280f)
                         }
                     }
             }
@@ -145,5 +149,14 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
             tvAttribute.text = args.product.attribute
             Glide.with(requireContext()).load(args.product.imageURL).into(ivFood)
         }
+    }
+
+    private fun animateCart(from: Float, to: Float) {
+        ObjectAnimator.ofFloat(binding.toolbarProductDetail.linearCart, "translationX", from, to).apply {
+            duration = 1000
+            interpolator = OvershootInterpolator()
+            start()
+        }
+
     }
 }

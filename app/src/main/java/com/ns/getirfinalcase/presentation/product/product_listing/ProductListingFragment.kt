@@ -1,8 +1,13 @@
 package com.ns.getirfinalcase.presentation.product.product_listing
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.viewModels
@@ -79,6 +84,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
             }
         }
     }
+
     private fun getProducts() {
         binding.apply {
             viewModel.getAllProductsFromApi()
@@ -127,7 +133,8 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         when (viewState) {
                             is ViewState.Success -> {
                                 linearCart.visible()
-                                //TODO (Animate Cart)
+                                animateCart(150f, 0f)
+
                                 totalPrice = 0.0
                                 productsFromBasket.forEach {
                                     totalPrice += it.price * it.quantity
@@ -137,7 +144,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                                     "₺${String.format("%.2f", totalPrice)}"
 
                                 if (totalPrice == 0.0) {
-                                    //TODO (Animate Cart)
+                                    animateCart(0f, 280f)
 
                                     linearCart.gone()
                                 }
@@ -398,7 +405,6 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
     }
 
 
-
     private fun initListener() {
         binding.rvProductListingScreen.adapter = concatAdapter
     }
@@ -412,6 +418,14 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
         binding.apply {
             productListingAdapter.data = listOf("productListingAdapter")
             suggestedProductsAdapter.data = listOf("suggestedProductsAdapter")
+        }
+    }
+
+    private fun animateCart(from: Float, to: Float) {
+        ObjectAnimator.ofFloat(binding.toolbarProductListing.linearCart, "translationX", from, to).apply {
+            duration = 1000
+            interpolator = OvershootInterpolator()
+            start()
         }
     }
 }
