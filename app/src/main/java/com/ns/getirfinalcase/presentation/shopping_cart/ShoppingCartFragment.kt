@@ -20,6 +20,7 @@ import com.ns.getirfinalcase.core.util.visible
 import com.ns.getirfinalcase.data.mapper.toProduct
 import com.ns.getirfinalcase.data.mapper.toSuggestedProduct
 import com.ns.getirfinalcase.databinding.FragmentShoppingCartBinding
+import com.ns.getirfinalcase.databinding.ItemProductListingViewBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsViewBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartSuggestedProductsBinding
@@ -37,7 +38,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
 ) {
 
     private val viewModel: ShoppingCartViewModel by viewModels()
-    private val productsFromBasket = mutableListOf<Product>()
 
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -99,11 +99,9 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                             is ViewState.Success -> {
                                 val response = viewState.result as BaseResponse.Success
                                 itemProductsInCartAdapter.data = response.data
-                                productsFromBasket.addAll(response.data)
                                 if (response.data.isEmpty()) {
                                     findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
                                 }
-
                             }
 
                             is ViewState.Error -> {
@@ -121,12 +119,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
         }
     }
 
-    private fun checkAndRemoveProductFromSuggestedList(product: Product) {
-        if (productsFromBasket.any { it.id == product.id }) {
-            removeProductFromSuggestedList(product)
-        }
-    }
-
     private fun getSuggestedProductsFromApi() {
         binding.apply {
             viewModel.getSuggestedProductsFromApi()
@@ -136,11 +128,8 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                         when (viewState) {
                             is ViewState.Success -> {
                                 val response = viewState.result as BaseResponse.Success
-                                itemSuggestedProductsAdapter.data = response.data[0].products
 
-                                itemSuggestedProductsAdapter.data.forEach { suggestedProduct ->
-                                    checkAndRemoveProductFromSuggestedList(suggestedProduct.toProduct())
-                                }
+                                itemSuggestedProductsAdapter.data = response.data[0].products
                             }
 
                             is ViewState.Error -> {
@@ -155,12 +144,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
             }
         }
     }
-
-    private fun removeProductFromSuggestedList(product: Product) {
-        val suggestedProducts = itemSuggestedProductsAdapter.data.filterNot { it.id == product.id }
-        itemSuggestedProductsAdapter.data = suggestedProducts
-    }
-
 
     private val productsInCartAdapter =
         SingleRecyclerAdapter<ItemShoppingCartProductsBinding, String>(
@@ -197,32 +180,18 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     Glide.with(binding.root.context).load(product.imageURL).into(ivFood)
 
 
-
                     ivAdd.setOnClickListener {
                         product.quantity++
                         viewModel.addToCart(product)
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                                .collect { productResponse ->
-                                    productResponse?.let {
-                                        tvProductQuantity.text = productResponse.quantity.toString()
-                                    }
-                                }
-                        }
+                        tvProductQuantity.text = product.quantity.toString()
+
                     }
 
                     ivDelete.setOnClickListener {
                         product.quantity--
 
                         viewModel.deleteFromCart(product)
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                                .collect { productResponse ->
-                                    productResponse?.let {
-                                        tvProductQuantity.text = productResponse.quantity.toString()
-                                    }
-                                }
-                        }
+                        tvProductQuantity.text = product.quantity.toString()
 
                     }
 
@@ -272,15 +241,16 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
     // TODO DELETE PROBLEM
 
     private val itemSuggestedProductsAdapter =
-        SingleRecyclerAdapter<ItemShoppingCartSuggestedProductsViewBinding, SuggestedProduct>(
+        SingleRecyclerAdapter<ItemProductListingViewBinding, SuggestedProduct>(
             { inflater, _, _ ->
-                ItemShoppingCartSuggestedProductsViewBinding.inflate(
+                ItemProductListingViewBinding.inflate(
                     inflater,
                     binding.rvShoppingCartScreen,
                     false
                 )
             },
             { binding, suggestedProduct ->
+                val product = suggestedProduct.toProduct()
 
                 binding.apply {
                     tvProductName.text = suggestedProduct.name
@@ -289,28 +259,20 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                         .load(suggestedProduct.imageURL ?: suggestedProduct.squareThumbnailURL)
                         .into(ivFood)
 
-                    ivAdd.setOnClickListener {
-                        val product = Product(
-                            id = suggestedProduct.id,
-                            name = suggestedProduct.name,
-                            imageURL = suggestedProduct.imageURL
-                                ?: suggestedProduct.squareThumbnailURL,
-                            price = suggestedProduct.price ?: 0.0,
-                            priceText = suggestedProduct.priceText,
-                            shortDescription = suggestedProduct.shortDescription,
-                            thumbnailURL = suggestedProduct.squareThumbnailURL,
-                            quantity = suggestedProduct.quantity ?: 1
-                        )
-                        viewModel.addToCart(product)
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                                .collect { productResponse ->
-                                    productResponse?.let {
-                                        removeProductFromSuggestedList(it)
-
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                            .collect { productResponse ->
+                                productResponse?.let {
+                                    if (productResponse.id == product.id) {
+                                        tvProductQuantity.text = productResponse.quantity.toString()
                                     }
                                 }
-                        }
+                            }
+                    }
+
+                    ivAdd.setOnClickListener {
+                        product.quantity++
+                        viewModel.addToCart(product)
                     }
 
                     root.setOnClickListener {

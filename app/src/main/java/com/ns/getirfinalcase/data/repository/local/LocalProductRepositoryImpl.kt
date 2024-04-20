@@ -43,4 +43,7 @@ class LocalProductRepositoryImpl @Inject constructor(
     override fun getTotalPriceInCart(): Flow<Double?> {
         return productsDao.getTotalPriceInCart()
     }
+
+    override suspend fun updateQuantity(productId: String, newQuantity: Int)
+            = productsDao.updateQuantity(productId, newQuantity)
 }

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.ns.getirfinalcase.domain.model.product.Product
 import kotlinx.coroutines.flow.Flow
 
@@ -27,5 +28,8 @@ interface ProductsDao {
 
     @Query("SELECT IFNULL(SUM(quantity * price), 0) FROM product")
     fun getTotalPriceInCart(): Flow<Double?>
+
+    @Query("UPDATE product SET quantity = :newQuantity WHERE id = :productId")
+    suspend fun updateQuantity(productId: String, newQuantity: Int)
 
 }
