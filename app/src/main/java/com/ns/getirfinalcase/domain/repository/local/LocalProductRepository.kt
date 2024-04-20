@@ -14,4 +14,6 @@ interface LocalProductRepository {
 
     fun getTotalPriceInCart(): Flow<Double?>
 
+    suspend fun updateQuantity(productId: String, newQuantity: Int)
+
 }

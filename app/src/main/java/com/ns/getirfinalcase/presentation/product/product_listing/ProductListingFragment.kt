@@ -79,6 +79,41 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
             }
         }
     }
+    private fun getProducts() {
+        binding.apply {
+            viewModel.getAllProductsFromApi()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getAllProducts.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { viewState ->
+                        when (viewState) {
+                            is ViewState.Success -> {
+
+                                val response = viewState.result as BaseResponse.Success
+                                productsFromBasket.forEach { basketProduct ->
+                                    if (basketProduct.quantity > 0) {
+                                        response.data[0].products.firstOrNull { it.id == basketProduct.id }
+                                            ?.let { product ->
+                                                product.quantity = basketProduct.quantity
+                                            }
+                                    }
+                                }
+                                itemProductListingAdapter.data = response.data[0].products
+                                println(response.data.toString())
+                            }
+
+                            is ViewState.Error -> {
+                                println(viewState.error.toString())
+
+                            }
+
+                            is ViewState.Loading -> {
+
+                            }
+                        }
+                    }
+            }
+        }
+    }
 
     private fun checkCart() {
         binding.toolbarProductListing.apply {
@@ -362,47 +397,6 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
         }
     }
 
-    private fun getProducts() {
-        binding.apply {
-            viewModel.getAllProductsFromApi()
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getAllProducts.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                    .collect { viewState ->
-                        when (viewState) {
-                            is ViewState.Success -> {
-
-                                val response = viewState.result as BaseResponse.Success
-                                productsFromBasket.forEach { basketProduct ->
-                                    if (basketProduct.quantity > 0) {
-                                        response.data[0].products.firstOrNull { it.id == basketProduct.id }
-                                            ?.let { product ->
-                                                product.quantity = basketProduct.quantity
-                                            }
-                                    }
-                                }
-
-
-                                itemProductListingAdapter.data = response.data[0].products
-
-                                println(response.data.toString())
-
-
-                            }
-
-                            is ViewState.Error -> {
-                                println(viewState.error.toString())
-
-                            }
-
-                            is ViewState.Loading -> {
-
-                            }
-                        }
-                    }
-
-            }
-        }
-    }
 
 
     private fun initListener() {

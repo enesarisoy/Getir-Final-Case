@@ -72,18 +72,25 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
                 args.product.quantity--
 
                 viewModel.deleteFromCart(args.product)
-                tvProductQuantity.text = args.product.quantity.toString()
-
-                if (args.product.quantity == 0) {
-                    ivDelete.isClickable = false
-                    linearLayout.gone()
-                    btnAddToBasket.visible()
-
+                viewLifecycleOwner.lifecycleScope.launch {
+                    viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                        .collect { product ->
+                            product?.let {
+                                ivDelete.isClickable = true
+                                linearLayout.visible()
+                                btnAddToBasket.gone()
+                                tvProductQuantity.text = product.quantity.toString()
+                            } ?: run {
+                                ivDelete.isClickable = false
+                                linearLayout.gone()
+                                btnAddToBasket.visible()
+                                tvProductQuantity.text = 0.toString()
+                            }
+                        }
                 }
             }
         }
     }
-
 
 
     private fun checkItemInCart() {
