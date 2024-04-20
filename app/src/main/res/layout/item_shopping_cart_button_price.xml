@@ -11,11 +11,11 @@
         android:layout_height="5dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/shadow"
-        app:layout_constraintBottom_toTopOf="@id/btnContinue" />
+        app:layout_constraintBottom_toTopOf="@id/linearContinue" />
 
 
     <LinearLayout
-        android:id="@+id/btnContinue"
+        android:id="@+id/linearContinue"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_margin="10dp"
@@ -29,6 +29,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
+            android:id="@+id/btnContinue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
