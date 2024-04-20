@@ -39,7 +39,6 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
         checkItemInCart()
         addItemToCart()
     }
-    // TODO ANIMATION
 
     private fun addItemToCart() {
         with(binding) {
@@ -134,7 +133,7 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
     private fun initClick() {
         with(binding) {
             toolbarProductDetail.ivClose.setOnClickListener {
-//                findNavController().navigateUp()TODO
+                findNavController().navigateUp()
             }
             toolbarProductDetail.linearCart.setOnClickListener {
                 findNavController().navigate(R.id.action_productDetailFragment_to_shoppingCartFragment)

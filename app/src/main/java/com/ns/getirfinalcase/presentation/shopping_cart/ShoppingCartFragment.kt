@@ -222,7 +222,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 }
             }
         )
-    // TODO DELETE PROBLEM
 
     private val itemSuggestedProductsAdapter =
         SingleRecyclerAdapter<ItemProductListingViewBinding, SuggestedProduct>(
@@ -300,6 +299,9 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 builder.setCanceledOnTouchOutside(false)
                 builder.show()
             }
+        }
+        binding.toolbarShoppingCart.ivClose.setOnClickListener {
+            findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
         }
     }
 
