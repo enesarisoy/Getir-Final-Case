@@ -13,4 +13,6 @@
     <string name="add_to_basket">Add to Basket</string>
     <string name="basket">Basket</string>
     <string name="recommended_products">Recommended Products</string>
+    <string name="okay">Okay</string>
+    <string name="alert_dialog_message_after_checkout">Your order has been received. Thank you for shopping with us.\nTotal Amount: %1$s</string>
 </resources>

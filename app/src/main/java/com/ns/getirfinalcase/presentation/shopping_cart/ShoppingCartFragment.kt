@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -15,10 +16,12 @@ import com.ns.getirfinalcase.R
 import com.ns.getirfinalcase.core.base.BaseFragment
 import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
+import com.ns.getirfinalcase.core.util.Constants.FAKE_DELAY
 import com.ns.getirfinalcase.core.util.gone
 import com.ns.getirfinalcase.core.util.visible
 import com.ns.getirfinalcase.data.mapper.toProduct
 import com.ns.getirfinalcase.data.mapper.toSuggestedProduct
+import com.ns.getirfinalcase.databinding.CustomAlertDialogBinding
 import com.ns.getirfinalcase.databinding.FragmentShoppingCartBinding
 import com.ns.getirfinalcase.databinding.ItemProductListingViewBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsBinding
@@ -30,6 +33,9 @@ import com.ns.getirfinalcase.domain.model.product.Product
 import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProduct
 import com.ns.getirfinalcase.presentation.adapter.SingleRecyclerAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -39,12 +45,12 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
 
     private val viewModel: ShoppingCartViewModel by viewModels()
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         initListener()
         initAdapters()
+        initClick()
         getProductsInCart()
         getSuggestedProductsFromApi()
         checkCartPrice()
@@ -54,28 +60,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
 
     }
 
-    private fun deleteAllItems() {
-        // TODO(anim)
-        with(binding) {
-            toolbarShoppingCart.ivDelete.setOnClickListener {
-                val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
-                    .create()
-                val view = layoutInflater.inflate(R.layout.custom_alert_dialog, null)
-                val btnPositive = view.findViewById<Button>(R.id.btnPositive)
-                val btnNegative = view.findViewById<Button>(R.id.btnNegative)
-                builder.setView(view)
-                btnNegative.setOnClickListener {
-                    builder.dismiss()
-                }
-                btnPositive.setOnClickListener {
-                    viewModel.deleteAllItems()
-                    builder.dismiss()
-                }
-                builder.setCanceledOnTouchOutside(false)
-                builder.show()
-            }
-        }
-    }
 
     private fun checkCartPrice() {
         with(binding) {
@@ -286,6 +270,63 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
 
             }
         )
+
+    private fun initClick() {
+        binding.layoutContinue.btnContinue.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                binding.progressBar.visible()
+                delay(FAKE_DELAY)
+                binding.progressBar.gone()
+
+                val alertDialogBinding = CustomAlertDialogBinding.inflate(layoutInflater).apply {
+                    btnNegative.gone()
+
+                    gaDialogMessageTextView.text =
+                        getString(
+                            R.string.alert_dialog_message_after_checkout,
+                            binding.layoutContinue.tvPrice.text
+                        )
+                    btnPositive.text = getString(R.string.okay)
+                }
+
+                val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+                    .setView(alertDialogBinding.root)
+                    .create()
+
+                alertDialogBinding.btnPositive.setOnClickListener {
+                    viewModel.deleteAllItems()
+                    builder.dismiss()
+                }
+                builder.setCanceledOnTouchOutside(false)
+                builder.show()
+            }
+        }
+    }
+
+    private fun deleteAllItems() {
+        with(binding) {
+            toolbarShoppingCart.ivDelete.setOnClickListener {
+                val alertDialogBinding = CustomAlertDialogBinding.inflate(layoutInflater)
+
+                val builder = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+                    .setView(alertDialogBinding.root)
+                    .create()
+
+                alertDialogBinding.apply {
+                    btnPositive.setOnClickListener {
+                        viewModel.deleteAllItems()
+                        builder.dismiss()
+                    }
+                    btnNegative.setOnClickListener {
+                        builder.dismiss()
+                    }
+                }
+
+                builder.setCanceledOnTouchOutside(false)
+                builder.show()
+            }
+        }
+    }
 
     private fun initListener() {
         binding.rvShoppingCartScreen.adapter = concatAdapter
