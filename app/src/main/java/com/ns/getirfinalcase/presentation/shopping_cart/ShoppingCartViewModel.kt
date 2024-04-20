@@ -62,7 +62,8 @@ class ShoppingCartViewModel @Inject constructor(
                 addToCartProductUseCase(product)
                 _addToCart.value = product
             }
-            getTotalPrice()
+//            getTotalPrice()
+            getProductsFromCart()
 
         }
     }
@@ -83,7 +84,8 @@ class ShoppingCartViewModel @Inject constructor(
                     _addToCart.value = null
                 }
             }
-            getTotalPrice()
+//            getTotalPrice()
+            getProductsFromCart()
         }
     }
 
@@ -121,6 +123,7 @@ class ShoppingCartViewModel @Inject constructor(
         }?.catch {
             _getProductsFromCart.emit(ViewState.Error(it.message.toString()))
         }?.launchIn(viewModelScope)
+        getTotalPrice()
     }
 
     fun deleteAllItems() {

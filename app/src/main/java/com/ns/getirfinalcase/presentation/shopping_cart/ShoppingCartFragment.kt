@@ -103,7 +103,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                                 if (response.data.isEmpty()) {
                                     findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
                                 }
-
                             }
 
                             is ViewState.Error -> {
@@ -197,7 +196,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     Glide.with(binding.root.context).load(product.imageURL).into(ivFood)
 
 
-
                     ivAdd.setOnClickListener {
                         product.quantity++
                         viewModel.addToCart(product)
@@ -215,6 +213,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                         product.quantity--
 
                         viewModel.deleteFromCart(product)
+
                         viewLifecycleOwner.lifecycleScope.launch {
                             viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
                                 .collect { productResponse ->
@@ -269,7 +268,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 }
             }
         )
-    // TODO DELETE PROBLEM
 
     private val itemSuggestedProductsAdapter =
         SingleRecyclerAdapter<ItemShoppingCartSuggestedProductsViewBinding, SuggestedProduct>(
@@ -281,6 +279,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 )
             },
             { binding, suggestedProduct ->
+                val product = suggestedProduct.toProduct()
 
                 binding.apply {
                     tvProductName.text = suggestedProduct.name
@@ -290,27 +289,18 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                         .into(ivFood)
 
                     ivAdd.setOnClickListener {
-                        val product = Product(
-                            id = suggestedProduct.id,
-                            name = suggestedProduct.name,
-                            imageURL = suggestedProduct.imageURL
-                                ?: suggestedProduct.squareThumbnailURL,
-                            price = suggestedProduct.price ?: 0.0,
-                            priceText = suggestedProduct.priceText,
-                            shortDescription = suggestedProduct.shortDescription,
-                            thumbnailURL = suggestedProduct.squareThumbnailURL,
-                            quantity = suggestedProduct.quantity ?: 1
-                        )
+                        product.quantity++
                         viewModel.addToCart(product)
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                                .collect { productResponse ->
-                                    productResponse?.let {
-                                        removeProductFromSuggestedList(it)
+                        removeProductFromSuggestedList(product)
 
-                                    }
-                                }
-                        }
+//                        viewLifecycleOwner.lifecycleScope.launch {
+//                            viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+//                                .collect { productResponse ->
+//                                    productResponse?.let {
+//
+//                                    }
+//                                }
+//                        }
                     }
 
                     root.setOnClickListener {
