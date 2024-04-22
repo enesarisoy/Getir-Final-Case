@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.flowWithLifecycle
@@ -275,6 +276,8 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
     private fun initClick() {
         binding.layoutContinue.btnContinue.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
+                val ivBackground = binding.progressBar.findViewById<ImageView>(R.id.ivBackground)
+                ivBackground.gone()
                 binding.progressBar.visible()
                 delay(FAKE_DELAY)
                 binding.progressBar.gone()
