@@ -4,7 +4,7 @@ import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.view.View
 import android.view.animation.OvershootInterpolator
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -12,7 +12,10 @@ import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
 import com.ns.getirfinalcase.R
 import com.ns.getirfinalcase.core.base.BaseFragment
+import com.ns.getirfinalcase.core.base.BaseResponse
+import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.core.util.gone
+import com.ns.getirfinalcase.core.util.showToast
 import com.ns.getirfinalcase.core.util.visible
 import com.ns.getirfinalcase.databinding.FragmentProductDetailBinding
 import com.ns.getirfinalcase.domain.model.product.Product
@@ -25,12 +28,11 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
 ) {
 
     private val args: ProductDetailFragmentArgs by navArgs()
-    private val viewModel: ProductDetailViewModel by viewModels()
+    private val viewModel: ProductDetailViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        println("Argument: ${args.product}")
 
         initData()
         initClick()
@@ -38,96 +40,7 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
         checkCartPrice()
         checkItemInCart()
         addItemToCart()
-    }
 
-    private fun addItemToCart() {
-        with(binding) {
-            btnAddToBasket.setOnClickListener {
-                args.product.quantity++
-                ivDelete.isClickable = true
-                viewModel.addToCart(args.product)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                        .collect { product ->
-                            product?.let {
-                                linearLayout.visible()
-                                btnAddToBasket.gone()
-                                tvProductQuantity.text = product.quantity.toString()
-                            }
-                        }
-                }
-            }
-            ivAdd.setOnClickListener {
-                args.product.quantity++
-                viewModel.addToCart(args.product)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                        .collect { product ->
-                            product?.let {
-                                tvProductQuantity.text = product.quantity.toString()
-                            }
-                        }
-                }
-            }
-            ivDelete.setOnClickListener {
-                args.product.quantity--
-
-                viewModel.deleteFromCart(args.product)
-                viewLifecycleOwner.lifecycleScope.launch {
-                    viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                        .collect { product ->
-                            product?.let {
-                                ivDelete.isClickable = true
-                                linearLayout.visible()
-                                btnAddToBasket.gone()
-                                tvProductQuantity.text = product.quantity.toString()
-                            } ?: run {
-                                ivDelete.isClickable = false
-                                linearLayout.gone()
-                                btnAddToBasket.visible()
-                                tvProductQuantity.text = 0.toString()
-                            }
-                        }
-                }
-            }
-        }
-    }
-
-
-    private fun checkItemInCart() {
-        with(binding) {
-
-            viewModel.getProductById(args.product)
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getProductById.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                    .collect { product ->
-                        product?.let {
-                            linearLayout.visible()
-                            btnAddToBasket.gone()
-                            tvProductQuantity.text = product.quantity.toString()
-                        }
-                    }
-            }
-        }
-    }
-
-    private fun checkCartPrice() {
-        with(binding) {
-            viewModel.getTotalPrice()
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getTotalPrice.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                    .collect { totalPrice ->
-                        toolbarProductDetail.linearCart.visible()
-                        animateCart(150f, 0f)
-                        toolbarProductDetail.tvCartPrice.text =
-                            "₺${String.format("%.2f", totalPrice)}"
-                        if (totalPrice == 0.0) {
-                            toolbarProductDetail.linearCart.gone()
-                            animateCart(0f, 280f)
-                        }
-                    }
-            }
-        }
     }
 
     private fun initClick() {
@@ -150,12 +63,160 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
         }
     }
 
-    private fun animateCart(from: Float, to: Float) {
-        ObjectAnimator.ofFloat(binding.toolbarProductDetail.linearCart, "translationX", from, to).apply {
-            duration = 1000
-            interpolator = OvershootInterpolator()
-            start()
+    private fun addItemToCart() {
+        with(binding) {
+            btnAddToBasket.setOnClickListener {
+                ivDelete.isClickable = true
+                increaseProductQuantity(args.product)
+            }
+            ivAdd.setOnClickListener {
+                increaseProductQuantity(args.product)
+            }
+            ivDelete.setOnClickListener {
+                decreaseProductQuantity(args.product)
+            }
         }
+    }
 
+    private fun increaseProductQuantity(product: Product) {
+        viewModel.addToCart(product)
+
+        observeCartChanges()
+    }
+
+    private fun decreaseProductQuantity(product: Product) {
+        if (product.quantity == 0) {
+            resetCartUI()
+        } else {
+            viewModel.deleteFromCart(product)
+        }
+        observeCartChanges()
+    }
+
+    private fun observeCartChanges() {
+        binding.apply {
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.addToCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { response ->
+                        when (response) {
+                            is ViewState.Success -> {
+                                val product = response.result as BaseResponse.Success
+
+                                ivDelete.isClickable = true
+                                ivAdd.isClickable = true
+
+                                if (product.data != null) {
+                                    updateCartUI(product.data)
+                                } else {
+                                    resetCartUI()
+                                }
+
+                            }
+
+                            is ViewState.Error -> {
+                                requireContext().showToast(response.error)
+                            }
+
+                            is ViewState.Loading -> {
+                                linearLayout.visible()
+                                btnAddToBasket.gone()
+                                animationView.visible()
+                                ivDelete.isClickable = false
+                                ivAdd.isClickable = false
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun updateCartUI(product: Product) {
+        with(binding) {
+            linearLayout.visible()
+            btnAddToBasket.gone()
+            tvProductQuantity.visible()
+            animationView.gone()
+            tvProductQuantity.text = product.quantity.toString()
+        }
+    }
+
+    private fun resetCartUI() {
+        with(binding) {
+            linearLayout.gone()
+            btnAddToBasket.visible()
+            tvProductQuantity.text = "0"
+        }
+    }
+
+    private fun checkItemInCart() {
+        with(binding) {
+            viewModel.getProductById(args.product)
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getProductById.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { response ->
+                        when (response) {
+                            is ViewState.Success -> {
+                                val product = response.result as BaseResponse.Success
+                                progressBar.gone()
+
+                                if (product.data != null) {
+                                    linearLayout.visible()
+                                    btnAddToBasket.gone()
+                                    tvProductQuantity.text = product.data.quantity.toString()
+                                } else {
+                                    btnAddToBasket.visible()
+                                    linearLayout.gone()
+                                }
+                            }
+
+                            is ViewState.Error -> {
+                                requireContext().showToast(response.error)
+                            }
+
+                            is ViewState.Loading -> {
+                                progressBar.visible()
+                                btnAddToBasket.visible()
+                                animationView.gone()
+                                linearLayout.gone()
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun checkCartPrice() {
+        viewModel.getTotalPrice()
+        observeTotalPriceChanges()
+    }
+
+    private fun observeTotalPriceChanges() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.getTotalPrice.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                .collect { totalPrice ->
+                    updateCartUI(totalPrice)
+                }
+        }
+    }
+
+    private fun updateCartUI(totalPrice: Double) {
+        with(binding.toolbarProductDetail) {
+            linearCart.visible()
+            animateCart(150f, 0f)
+            tvCartPrice.text = getString(R.string.total_price, String.format("%.2f", totalPrice))
+            if (totalPrice == 0.0) {
+                linearCart.gone()
+                animateCart(0f, 280f)
+            }
+        }
+    }
+
+    private fun animateCart(from: Float, to: Float) {
+        ObjectAnimator.ofFloat(binding.toolbarProductDetail.linearCart, "translationX", from, to)
+            .apply {
+                duration = 1000
+                interpolator = OvershootInterpolator()
+                start()
+            }
     }
 }

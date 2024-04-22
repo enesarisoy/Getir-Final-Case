@@ -11,9 +11,11 @@ import com.ns.getirfinalcase.domain.usecase.product.local.AddToCartProductUseCas
 import com.ns.getirfinalcase.domain.usecase.product.local.DeleteFromCartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetProductByIdUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetProductsFromCartUseCase
+import com.ns.getirfinalcase.domain.usecase.product.local.UpdateProductsUseCase
 import com.ns.getirfinalcase.domain.usecase.product.remote.GetAllProductUseCase
 import com.ns.getirfinalcase.domain.usecase.product.remote.GetSuggestedProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -31,20 +33,28 @@ class ProductListingViewModel @Inject constructor(
     private val getProductByIdUseCase: GetProductByIdUseCase,
     private val addToCartProductUseCase: AddToCartProductUseCase,
     private val deleteFromCartUseCase: DeleteFromCartUseCase,
-    private val getSuggestedProductsUseCase: GetSuggestedProductsUseCase
+    private val getSuggestedProductsUseCase: GetSuggestedProductsUseCase,
+    private val updateProductsUseCase: UpdateProductsUseCase
 ) : ViewModel() {
 
+    // Gets products from the API.
     private var _getAllProducts: MutableStateFlow<ViewState<BaseResponse<List<ProductResponse>>>> =
         MutableStateFlow(ViewState.Loading)
     val getAllProducts = _getAllProducts.asStateFlow()
 
+    // Gets all products from the local database.
     private var _getProductsFromCart: MutableStateFlow<ViewState<BaseResponse<List<Product>>>> =
         MutableStateFlow(ViewState.Loading)
     val getProductsFromCart = _getProductsFromCart.asStateFlow()
 
+    // Gets suggested products from the API.
     private var _getSuggestedProducts: MutableStateFlow<ViewState<BaseResponse<List<SuggestedProductResponse>>>> =
         MutableStateFlow(ViewState.Loading)
     val getSuggestedProducts = _getSuggestedProducts.asStateFlow()
+
+    // Adds a product to the cart.
+    private var _addToCart: MutableStateFlow<Product?> = MutableStateFlow(null)
+    val addToCart = _addToCart.asStateFlow()
 
     fun getSuggestedProductsFromApi() {
         getSuggestedProductsUseCase().map { response ->
@@ -65,21 +75,29 @@ class ProductListingViewModel @Inject constructor(
     }
 
     fun getAllProductsFromApi() {
-        getAllProductUseCase().map { response ->
-            when (response) {
-                is BaseResponse.Success -> {
-                    ViewState.Success(response)
-                }
+        viewModelScope.launch {
+            _getAllProducts.value = ViewState.Loading
 
-                is BaseResponse.Error -> {
-                    ViewState.Error(response.message)
-                }
+            delay(1800)
+
+            try {
+                getAllProductUseCase().map { response ->
+                    when (response) {
+                        is BaseResponse.Success -> {
+                            ViewState.Success(response)
+                        }
+
+                        is BaseResponse.Error -> {
+                            ViewState.Error(response.message)
+                        }
+                    }
+                }.onEach { data ->
+                    _getAllProducts.emit(data)
+                }.launchIn(viewModelScope)
+            } catch (e: Exception) {
+                _getAllProducts.value = ViewState.Error(e.message.toString())
             }
-        }.onEach { data ->
-            _getAllProducts.emit(data)
-        }.catch {
-            _getAllProducts.emit(ViewState.Error(it.message.toString()))
-        }.launchIn(viewModelScope)
+        }
     }
 
     fun getProductsFromCart() {
@@ -100,17 +118,17 @@ class ProductListingViewModel @Inject constructor(
         }?.launchIn(viewModelScope)
     }
 
-
     fun addToCart(product: Product) {
         viewModelScope.launch {
             val checkProductAlreadyInDatabase = getProductByIdUseCase(product.id).firstOrNull()
 
             checkProductAlreadyInDatabase?.let {
                 it.quantity++
-                addToCartProductUseCase(it)
-
+                updateProductsUseCase.invoke(it.id, it.quantity)
+                _addToCart.value = it
             } ?: run {
                 addToCartProductUseCase(product)
+                _addToCart.value = product
             }
             getProductsFromCart()
         }
@@ -123,9 +141,7 @@ class ProductListingViewModel @Inject constructor(
             checkProductAlreadyInDatabase?.let {
                 if (it.quantity > 1) {
                     it.quantity--
-                    // Updates the current product quantity with minus 1.
-                    // Used this because room's @Update not working correctly. (Or I couldn't manage it.)
-                    addToCartProductUseCase(it)
+                    updateProductsUseCase.invoke(it.id, it.quantity)
                 } else {
                     deleteFromCartUseCase(product.id)
                 }

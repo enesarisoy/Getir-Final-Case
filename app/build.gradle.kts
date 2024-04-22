@@ -83,4 +83,7 @@ dependencies {
     annotationProcessor(libs.room.compiler)
     kapt(libs.room.compiler)
 
+    // Lottie Animation
+    implementation(libs.lottie)
+
 }

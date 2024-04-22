@@ -1,12 +1,15 @@
 package com.ns.getirfinalcase.presentation.shopping_cart
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.app.AlertDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.TextView
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -18,16 +21,15 @@ import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.core.util.Constants.FAKE_DELAY
 import com.ns.getirfinalcase.core.util.gone
+import com.ns.getirfinalcase.core.util.showToast
 import com.ns.getirfinalcase.core.util.visible
 import com.ns.getirfinalcase.data.mapper.toProduct
-import com.ns.getirfinalcase.data.mapper.toSuggestedProduct
 import com.ns.getirfinalcase.databinding.CustomAlertDialogBinding
 import com.ns.getirfinalcase.databinding.FragmentShoppingCartBinding
 import com.ns.getirfinalcase.databinding.ItemProductListingViewBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartProductsViewBinding
 import com.ns.getirfinalcase.databinding.ItemShoppingCartSuggestedProductsBinding
-import com.ns.getirfinalcase.databinding.ItemShoppingCartSuggestedProductsViewBinding
 import com.ns.getirfinalcase.databinding.ItemTitleBinding
 import com.ns.getirfinalcase.domain.model.product.Product
 import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProduct
@@ -43,7 +45,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
     FragmentShoppingCartBinding::inflate
 ) {
 
-    private val viewModel: ShoppingCartViewModel by viewModels()
+    private val viewModel: ShoppingCartViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -57,76 +59,6 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
 
         deleteAllItems()
 
-
-    }
-
-
-    private fun checkCartPrice() {
-        with(binding) {
-            viewModel.getTotalPrice()
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getTotalPrice.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                    .collect { totalPrice ->
-                        layoutContinue.tvPrice.text = "₺${String.format("%.2f", totalPrice)}"
-                    }
-            }
-        }
-    }
-
-    private fun getProductsInCart() {
-        binding.apply {
-            viewModel.getProductsFromCart()
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getProductsFromCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                    .collect { viewState ->
-                        when (viewState) {
-                            is ViewState.Success -> {
-                                val response = viewState.result as BaseResponse.Success
-                                itemProductsInCartAdapter.data = response.data
-                                if (response.data.isEmpty()) {
-                                    findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
-                                }
-                            }
-
-                            is ViewState.Error -> {
-                                Log.d("Database", viewState.error)
-
-                            }
-
-                            is ViewState.Loading -> {
-                                Log.d("Database", "Loading")
-
-                            }
-                        }
-                    }
-            }
-        }
-    }
-
-    private fun getSuggestedProductsFromApi() {
-        binding.apply {
-            viewModel.getSuggestedProductsFromApi()
-            viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.getSuggestedProducts.flowWithLifecycle(viewLifecycleOwner.lifecycle)
-                    .collect { viewState ->
-                        when (viewState) {
-                            is ViewState.Success -> {
-                                val response = viewState.result as BaseResponse.Success
-
-                                itemSuggestedProductsAdapter.data = response.data[0].products
-                            }
-
-                            is ViewState.Error -> {
-                                Log.d("SuggestedProducts", viewState.error)
-                            }
-
-                            is ViewState.Loading -> {
-                                Log.d("SuggestedProducts", "Loading")
-                            }
-                        }
-                    }
-            }
-        }
     }
 
     private val productsInCartAdapter =
@@ -138,7 +70,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     false
                 )
             },
-            { binding, item ->
+            { binding, _ ->
                 binding.apply {
                     rvItemShoppingCartProducts.adapter = itemProductsInCartAdapter
                 }
@@ -168,15 +100,12 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                         product.quantity++
                         viewModel.addToCart(product)
                         tvProductQuantity.text = product.quantity.toString()
-
                     }
 
                     ivDelete.setOnClickListener {
                         product.quantity--
-
                         viewModel.deleteFromCart(product)
                         tvProductQuantity.text = product.quantity.toString()
-
                     }
 
                     root.setOnClickListener {
@@ -200,7 +129,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     false
                 )
             },
-            { binding, item ->
+            { binding, _ ->
                 binding.apply {
                     tvTitle.text = getString(R.string.recommended_products)
                 }
@@ -216,7 +145,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                     false
                 )
             },
-            { binding, item ->
+            { binding, _ ->
                 binding.apply {
                     rvItemShoppingCartSuggestedProducts.adapter = itemSuggestedProductsAdapter
                 }
@@ -269,6 +198,79 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
 
             }
         )
+
+    private fun checkCartPrice() {
+        with(binding) {
+            viewModel.getTotalPrice()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getTotalPrice.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { totalPrice ->
+                        layoutContinue.tvPrice.animateTextChange(
+                            getString(
+                                R.string.total_price,
+                                String.format("%.2f", totalPrice)
+                            )
+                        )
+                    }
+            }
+        }
+    }
+
+    private fun getProductsInCart() {
+        binding.apply {
+            viewModel.getProductsFromCart()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getProductsFromCart.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { viewState ->
+                        when (viewState) {
+                            is ViewState.Success -> {
+                                val response = viewState.result as BaseResponse.Success
+                                itemProductsInCartAdapter.data = response.data
+                                if (response.data.isEmpty()) {
+                                    findNavController().navigate(R.id.action_shoppingCartFragment_to_productListingFragment)
+                                }
+                            }
+
+                            is ViewState.Error -> {
+                                requireContext().showToast("Error: ${viewState.error}")
+
+                            }
+
+                            is ViewState.Loading -> {
+                                Log.d("Database", "Loading")
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun getSuggestedProductsFromApi() {
+        binding.apply {
+            viewModel.getSuggestedProductsFromApi()
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewModel.getSuggestedProducts.flowWithLifecycle(viewLifecycleOwner.lifecycle)
+                    .collect { viewState ->
+                        when (viewState) {
+                            is ViewState.Success -> {
+                                val response = viewState.result as BaseResponse.Success
+
+                                itemSuggestedProductsAdapter.data = response.data[0].products
+                            }
+
+                            is ViewState.Error -> {
+                                requireContext().showToast("Error: ${viewState.error}")
+                            }
+
+                            is ViewState.Loading -> {
+                                Log.d("SuggestedProducts", "Loading")
+                            }
+                        }
+                    }
+            }
+        }
+    }
+
 
     private fun initClick() {
         binding.layoutContinue.btnContinue.setOnClickListener {
@@ -330,6 +332,30 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
         }
     }
 
+    private fun TextView.animateTextChange(newText: String) {
+
+        val animator = ValueAnimator.ofFloat(1f, 1.2f, 1f)
+        animator.duration = 500
+        animator.interpolator = AccelerateDecelerateInterpolator()
+
+        animator.addUpdateListener { valueAnimator ->
+            val value = valueAnimator.animatedValue as Float
+            this.scaleX = value
+            this.scaleY = value
+        }
+
+        animator.addListener(object : AnimatorListenerAdapter() {
+
+            override fun onAnimationStart(animation: Animator) {
+                super.onAnimationStart(animation)
+                this@animateTextChange.text = newText
+            }
+
+        })
+
+        animator.start()
+    }
+
     private fun initListener() {
         binding.rvShoppingCartScreen.adapter = concatAdapter
     }
@@ -347,4 +373,5 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
             suggestedProductsAdapter.data = listOf("suggestedProductsAdapter")
         }
     }
+
 }

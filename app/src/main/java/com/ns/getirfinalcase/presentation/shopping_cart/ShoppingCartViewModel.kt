@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
 import com.ns.getirfinalcase.domain.model.product.Product
-import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProduct
 import com.ns.getirfinalcase.domain.model.suggested_product.SuggestedProductResponse
 import com.ns.getirfinalcase.domain.usecase.product.local.AddToCartProductUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.DeleteAllItemsInCartUseCase
@@ -13,6 +12,7 @@ import com.ns.getirfinalcase.domain.usecase.product.local.DeleteFromCartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetProductByIdUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetProductsFromCartUseCase
 import com.ns.getirfinalcase.domain.usecase.product.local.GetTotalPriceInChartUseCase
+import com.ns.getirfinalcase.domain.usecase.product.local.UpdateProductsUseCase
 import com.ns.getirfinalcase.domain.usecase.product.remote.GetSuggestedProductsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +33,8 @@ class ShoppingCartViewModel @Inject constructor(
     private val deleteAllItemsInCartUseCase: DeleteAllItemsInCartUseCase,
     private val addToCartProductUseCase: AddToCartProductUseCase,
     private val deleteFromCartUseCase: DeleteFromCartUseCase,
-    private val getProductByIdUseCase: GetProductByIdUseCase
+    private val getProductByIdUseCase: GetProductByIdUseCase,
+    private val updateProductsUseCase: UpdateProductsUseCase
 ) : ViewModel() {
 
     private var _getProductsFromCart: MutableStateFlow<ViewState<BaseResponse<List<Product>>>> =
@@ -56,15 +57,13 @@ class ShoppingCartViewModel @Inject constructor(
 
             checkProductAlreadyInDatabase?.let {
                 it.quantity++
-                addToCartProductUseCase(it)
+                updateProductsUseCase.invoke(it.id, it.quantity)
                 _addToCart.value = it
             } ?: run {
                 addToCartProductUseCase(product)
                 _addToCart.value = product
             }
-//            getTotalPrice()
-            getProductsFromCart()
-
+            getTotalPrice()
         }
     }
 
@@ -75,17 +74,14 @@ class ShoppingCartViewModel @Inject constructor(
             checkProductAlreadyInDatabase?.let {
                 if (it.quantity > 1) {
                     it.quantity--
-                    // Updates the current product quantity with minus 1.
-                    // Used this because room's @Update not working correctly. (Or I couldn't manage it.)
-                    addToCartProductUseCase(it)
+                    updateProductsUseCase.invoke(it.id, it.quantity)
                     _addToCart.value = it
                 } else {
                     deleteFromCartUseCase(product.id)
                     _addToCart.value = null
                 }
             }
-//            getTotalPrice()
-            getProductsFromCart()
+            getTotalPrice()
         }
     }
 
