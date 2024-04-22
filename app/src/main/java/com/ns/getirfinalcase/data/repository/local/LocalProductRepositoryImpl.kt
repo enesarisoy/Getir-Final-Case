@@ -44,6 +44,6 @@ class LocalProductRepositoryImpl @Inject constructor(
         return productsDao.getTotalPriceInCart()
     }
 
-    override suspend fun updateQuantity(productId: String, newQuantity: Int)
-            = productsDao.updateQuantity(productId, newQuantity)
+    override suspend fun updateQuantity(productId: String, newQuantity: Int) =
+        productsDao.updateQuantity(productId, newQuantity)
 }

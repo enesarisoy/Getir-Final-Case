@@ -14,4 +14,5 @@
     <string name="recommended_products">Recommended Products</string>
     <string name="okay">Okay</string>
     <string name="alert_dialog_message_after_checkout">Your order has been received. Thank you for shopping with us.\nTotal Amount: %1$s</string>
+    <string name="total_price">₺%1$s</string>
 </resources>
