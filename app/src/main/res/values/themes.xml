@@ -2,12 +2,9 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.GetirFinalCase" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/bg_primary</item>
     </style>
 
     <style name="Theme.GetirFinalCase" parent="Base.Theme.GetirFinalCase" />
 
-    <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="android:windowBackground">@drawable/alert_dialog_rounded_corner</item>
-    </style>
 </resources>

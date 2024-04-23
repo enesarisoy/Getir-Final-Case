@@ -30,10 +30,10 @@
 
         <Button
             android:id="@+id/btnContinue"
-            android:layout_width="match_parent"
+            style="@style/Button.CustomButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
             android:text="@string/continue_to_checkout" />
 
         <FrameLayout

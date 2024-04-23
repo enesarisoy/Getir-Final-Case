@@ -10,8 +10,8 @@
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
-        android:elevation="1dp"
         android:layout_height="wrap_content"
+        android:elevation="1dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -108,11 +108,11 @@
 
         <Button
             android:id="@+id/btnAddToBasket"
+            style="@style/Button.CustomButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginBottom="16dp"
-            android:background="@drawable/button_background"
             android:text="@string/add_to_basket"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -146,7 +146,6 @@
                 app:layout_constraintTop_toBottomOf="@id/tvProductQuantity"
                 app:tint="@color/bg_primary" />
 
-            <!-- tvProductQuantity ve animationView için FrameLayout kullanımı -->
             <FrameLayout
                 android:layout_width="48dp"
                 android:layout_height="48dp"
@@ -154,7 +153,6 @@
                 app:layout_constraintEnd_toEndOf="@id/cardView"
                 app:layout_constraintTop_toBottomOf="@id/ivAdd">
 
-                <!-- tvProductQuantity -->
                 <TextView
                     android:id="@+id/tvProductQuantity"
                     android:layout_width="match_parent"
@@ -166,7 +164,6 @@
                     android:textColor="@color/white"
                     android:textSize="12sp" />
 
-                <!-- animationView -->
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/animationView"
                     android:layout_width="30dp"
