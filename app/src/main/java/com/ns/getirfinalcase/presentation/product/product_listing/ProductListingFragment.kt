@@ -244,9 +244,10 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         when (viewState) {
                             is ViewState.Success -> {
 
-                                loadingLogo.gone()
-                                val response = viewState.result as BaseResponse.Success
+                                progressBar.root.gone()
+//                                progressBar.shimmerLayout.gone()
                                 rvProductListingScreen.visible()
+                                val response = viewState.result as BaseResponse.Success
                                 productsFromBasket.forEach { basketProduct ->
                                     if (basketProduct.quantity > 0) {
                                         response.data[0].products.firstOrNull { it.id == basketProduct.id }
@@ -263,7 +264,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                             }
 
                             is ViewState.Loading -> {
-                                loadingLogo.visible()
+                                progressBar.root.visible()
                                 rvProductListingScreen.gone()
                             }
                         }

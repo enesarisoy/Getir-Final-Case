@@ -78,7 +78,7 @@ class ProductListingViewModel @Inject constructor(
         viewModelScope.launch {
             _getAllProducts.value = ViewState.Loading
 
-            delay(1800)
+            delay(1000)
 
             try {
                 getAllProductUseCase().map { response ->
