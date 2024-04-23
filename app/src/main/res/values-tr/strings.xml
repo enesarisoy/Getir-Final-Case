@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Getir Final Case</string>
+    <string name="app_name">Getir</string>
     <string name="binding_is_null">Binding is null</string>
     <string name="products">Ürünler</string>
     <string name="add">Ekle</string>

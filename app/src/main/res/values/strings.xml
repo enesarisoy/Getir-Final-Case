@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Getir Final Case</string>
+    <string name="app_name">Getir</string>
     <string name="binding_is_null">Binding is null</string>
     <string name="products">Products</string>
     <string name="add">Add</string>
