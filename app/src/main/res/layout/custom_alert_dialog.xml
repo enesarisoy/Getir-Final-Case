@@ -15,7 +15,7 @@
         android:layout_marginHorizontal="20dp"
         android:fontFamily="@font/open_sans_semibold"
         android:gravity="center"
-        android:text="Are you sure you want to empty your basket?"
+        android:text="@string/are_you_sure_you_want_to_empty_your_basket"
         android:textColor="#FF191919"
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"

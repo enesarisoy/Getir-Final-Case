@@ -244,7 +244,6 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                             is ViewState.Success -> {
 
                                 progressBar.root.gone()
-//                                progressBar.shimmerLayout.gone()
                                 rvProductListingScreen.visible()
                                 val response = viewState.result as BaseResponse.Success
                                 productsFromBasket.forEach { basketProduct ->
@@ -313,7 +312,6 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                                         visibility = View.GONE
                                     )
 
-//                                    linearCart.gone()
                                 }
                             }
 

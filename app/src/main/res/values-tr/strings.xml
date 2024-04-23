@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Getir Final Case</string>
+    <string name="binding_is_null">Binding is null</string>
+    <string name="products">Ürünler</string>
+    <string name="add">Ekle</string>
+    <string name="delete">Sil</string>
+    <string name="close">Kapat</string>
+    <string name="product_details">Ürün Detayları</string>
+    <string name="product_name">Ürün adı</string>
+    <string name="attribute">Özellik</string>
+    <string name="add_to_basket">Sepete Ekle</string>
+    <string name="basket">Sepetim</string>
+    <string name="recommended_products">Önerilen Ürünler</string>
+    <string name="okay">Tamam</string>
+    <string name="alert_dialog_message_after_checkout">Siparişiniz alındı. Bizimle alışveriş yaptığınız için teşekkür ederiz.\nToplam Tutar: %1$s</string>
+    <string name="total_price">₺%1$s</string>
+    <string name="are_you_sure_you_want_to_empty_your_basket">Sepetinizi boşaltmak istediğinizden emin misiniz?</string>
+    <string name="continue_to_checkout">Devam</string>
+
+</resources>
