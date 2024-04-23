@@ -86,4 +86,7 @@ dependencies {
     // Lottie Animation
     implementation(libs.lottie)
 
+    // Shimmer
+    implementation(libs.shimmer)
+
 }
