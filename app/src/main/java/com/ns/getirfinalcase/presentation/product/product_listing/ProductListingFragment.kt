@@ -1,12 +1,10 @@
 package com.ns.getirfinalcase.presentation.product.product_listing
 
-import android.animation.ObjectAnimator
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.Animation
-import android.view.animation.OvershootInterpolator
 import android.view.animation.ScaleAnimation
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
@@ -21,6 +19,7 @@ import com.ns.getirfinalcase.R
 import com.ns.getirfinalcase.core.base.BaseFragment
 import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
+import com.ns.getirfinalcase.core.util.animateCart
 import com.ns.getirfinalcase.core.util.gone
 import com.ns.getirfinalcase.core.util.showToast
 import com.ns.getirfinalcase.core.util.visible
@@ -289,7 +288,12 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                                 productsFromBasket.addAll(response.data)
 
                                 linearCart.visible()
-                                animateCart(150f, 0f)
+                                animateCart(
+                                    binding.toolbarProductListing.linearCart,
+                                    150f,
+                                    0f,
+                                    visibility = View.VISIBLE
+                                )
 
                                 totalPrice = 0.0
                                 productsFromBasket.forEach {
@@ -302,9 +306,14 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                                 )
 
                                 if (totalPrice == 0.0) {
-                                    animateCart(0f, 280f)
+                                    animateCart(
+                                        binding.toolbarProductListing.linearCart,
+                                        0f,
+                                        280f,
+                                        visibility = View.GONE
+                                    )
 
-                                    linearCart.gone()
+//                                    linearCart.gone()
                                 }
                             }
 
@@ -391,15 +400,6 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
             ivDelete.setImageDrawable(null)
 
         }
-    }
-
-    private fun animateCart(from: Float, to: Float) {
-        ObjectAnimator.ofFloat(binding.toolbarProductListing.linearCart, "translationX", from, to)
-            .apply {
-                duration = 1000
-                interpolator = OvershootInterpolator()
-                start()
-            }
     }
 
     private fun downToAnimation(binding: ItemProductListingViewBinding) {

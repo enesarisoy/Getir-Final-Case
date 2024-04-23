@@ -14,6 +14,7 @@ import com.ns.getirfinalcase.R
 import com.ns.getirfinalcase.core.base.BaseFragment
 import com.ns.getirfinalcase.core.base.BaseResponse
 import com.ns.getirfinalcase.core.domain.ViewState
+import com.ns.getirfinalcase.core.util.animateCart
 import com.ns.getirfinalcase.core.util.gone
 import com.ns.getirfinalcase.core.util.showToast
 import com.ns.getirfinalcase.core.util.visible
@@ -202,21 +203,11 @@ class ProductDetailFragment : BaseFragment<FragmentProductDetailBinding>(
     private fun updateCartUI(totalPrice: Double) {
         with(binding.toolbarProductDetail) {
             linearCart.visible()
-            animateCart(150f, 0f)
+            animateCart(linearCart, 150f, 0f, View.VISIBLE)
             tvCartPrice.text = getString(R.string.total_price, String.format("%.2f", totalPrice))
             if (totalPrice == 0.0) {
-                linearCart.gone()
-                animateCart(0f, 280f)
+                animateCart(linearCart, 0f, 280f, View.GONE)
             }
         }
-    }
-
-    private fun animateCart(from: Float, to: Float) {
-        ObjectAnimator.ofFloat(binding.toolbarProductDetail.linearCart, "translationX", from, to)
-            .apply {
-                duration = 1000
-                interpolator = OvershootInterpolator()
-                start()
-            }
     }
 }
