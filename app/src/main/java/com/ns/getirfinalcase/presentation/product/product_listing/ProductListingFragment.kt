@@ -409,6 +409,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                     R.drawable.cart_add_icon_background,
                     null
                 )
+            ivFood.setBackgroundResource(R.drawable.cart_image_background)
             tvProductQuantity.text = null
             ivDelete.setImageDrawable(null)
 
