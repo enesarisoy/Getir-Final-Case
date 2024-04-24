@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kapt)
+    alias(libs.plugins.safeArgs)
+    alias(libs.plugins.parcelize)
 }
 
 android {
@@ -38,7 +40,9 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
+
 }
 
 dependencies {
@@ -48,6 +52,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.core.ktx)
+    implementation(libs.androidx.junit.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,5 +76,24 @@ dependencies {
 
     // Glide
     implementation(libs.glide)
+
+    // Recyclerview
+    implementation(libs.recyclerview)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    annotationProcessor(libs.room.compiler)
+    kapt(libs.room.compiler)
+
+    // Lottie Animation
+    implementation(libs.lottie)
+
+    // Shimmer
+    implementation(libs.shimmer)
+
+
+    // Room Testing
+    testImplementation(libs.androidx.room.testing)
 
 }

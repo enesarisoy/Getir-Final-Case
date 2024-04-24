@@ -1,4 +1,19 @@
 <resources>
-    <string name="app_name">Getir Final Case</string>
+    <string name="app_name">Getir</string>
     <string name="binding_is_null">Binding is null</string>
+    <string name="products">Products</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="product_details">Product Details</string>
+    <string name="product_name">Product Name</string>
+    <string name="attribute">Attribute</string>
+    <string name="add_to_basket">Add to Basket</string>
+    <string name="basket">Basket</string>
+    <string name="recommended_products">Recommended Products</string>
+    <string name="okay">Okay</string>
+    <string name="alert_dialog_message_after_checkout">Your order has been received. Thank you for shopping with us.\nTotal Amount: %1$s</string>
+    <string name="total_price">₺%1$s</string>
+    <string name="are_you_sure_you_want_to_empty_your_basket">Are you sure you want to empty your basket?</string>
+    <string name="continue_to_checkout">Continue</string>
 </resources>
