@@ -28,7 +28,7 @@
                 android:id="@+id/ivFood"
                 android:layout_width="103dp"
                 android:layout_height="103dp"
-                android:background="@drawable/cart_image_background"
+                android:background="@drawable/cart_image_background_for_anim"
                 android:padding="8dp"
                 android:scaleType="centerInside"
                 android:src="@drawable/sample_food"

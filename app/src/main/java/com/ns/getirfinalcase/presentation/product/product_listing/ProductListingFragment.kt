@@ -1,11 +1,20 @@
 package com.ns.getirfinalcase.presentation.product.product_listing
 
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
+import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import android.view.animation.AnimationSet
 import android.view.animation.ScaleAnimation
+import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.activityViewModels
@@ -100,6 +109,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         isFirstTime = false
                         tvProductQuantity.text = product.quantity.toString()
                         displayComponents(binding)
+                        animateStrokeColor(binding.root.context, ivFood, true)
                     } else {
                         clearComponents(binding)
                     }
@@ -114,6 +124,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                         tvProductQuantity.text = product.quantity.toString()
                         if (isFirstTime) {
                             downToAnimation(binding)
+                            animateStrokeColor(binding.root.context, ivFood, true)
                             isFirstTime = false
                         }
                     }
@@ -129,6 +140,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                             ivDelete.isClickable = false
                             clearComponents(binding)
                             upToAnimation(binding)
+                            animateStrokeColor(binding.root.context, ivFood, false)
 
                         }
 
@@ -184,6 +196,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
                     if (product.quantity > 0) {
                         isFirstTime = false
+                        animateStrokeColor(binding.root.context, ivFood, true)
                         tvProductQuantity.text = product.quantity.toString()
                         displayComponents(binding)
                     } else {
@@ -200,6 +213,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
 
                         if (isFirstTime) {
                             downToAnimation(binding)
+                            animateStrokeColor(binding.root.context, ivFood, true)
                             isFirstTime = false
                         }
 
@@ -216,6 +230,7 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
                             ivDelete.isClickable = false
                             clearComponents(binding)
                             upToAnimation(binding)
+                            animateStrokeColor(binding.root.context, ivFood, false)
 
                         }
 
@@ -453,6 +468,33 @@ class ProductListingFragment : BaseFragment<FragmentProductListingBinding>(
         })
 
         binding.linearLayout.startAnimation(scaleAnimation)
+    }
+
+    private fun animateStrokeColor(context: Context, ivFood: ImageView, isAdded: Boolean) {
+        val drawable = ContextCompat.getDrawable(context, R.drawable.cart_image_background_for_anim)
+        if (drawable is GradientDrawable) {
+            val colorFrom: Int
+            val colorTo: Int
+
+            if (isAdded) {
+                colorFrom = ContextCompat.getColor(context, R.color.stroke_color)
+                colorTo = ContextCompat.getColor(context, R.color.bg_primary)
+            } else {
+                colorFrom = ContextCompat.getColor(context, R.color.bg_primary)
+                colorTo = ContextCompat.getColor(context, R.color.stroke_color)
+            }
+
+            val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
+            colorAnimation.duration = 1000
+
+            colorAnimation.addUpdateListener { animator ->
+                val color = animator.animatedValue as Int
+                drawable.setStroke(3, color)
+                ivFood.background = drawable
+            }
+
+            colorAnimation.start()
+        }
     }
 
     private fun initListener() {

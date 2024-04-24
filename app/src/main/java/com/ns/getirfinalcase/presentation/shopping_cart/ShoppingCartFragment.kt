@@ -168,6 +168,7 @@ class ShoppingCartFragment : BaseFragment<FragmentShoppingCartBinding>(
                 binding.apply {
                     tvProductName.text = suggestedProduct.name
                     tvPrice.text = suggestedProduct.priceText
+                    ivFood.setBackgroundResource(R.drawable.cart_image_background)
                     Glide.with(binding.root.context)
                         .load(suggestedProduct.imageURL ?: suggestedProduct.squareThumbnailURL)
                         .into(ivFood)
